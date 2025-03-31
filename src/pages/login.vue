@@ -11,9 +11,10 @@ import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { useRoute, useRouter } from 'vue-router'
 
+// default state
 const form = ref({
-  email: '',
-  password: '',
+  username: 'super-admin',
+  password: 'password',
   remember: false,
 })
 
@@ -31,7 +32,7 @@ const login = async () => {
     const resp = await $api('/auth/login', {
       method: 'POST',
       body: {
-        email: form.value.email,
+        username: form.value.username,
         password: form.value.password
       },
       onResponseError({response}){
@@ -40,7 +41,7 @@ const login = async () => {
       }
     })
     
-    console.log(resp);
+    // console.log(resp);
     localStorage.setItem('token', resp.access_token);
     localStorage.setItem('user', JSON.stringify(resp.user));
     success_exists.value = true;
@@ -121,14 +122,14 @@ const authV2LoginIllustration = useGenerateImageVariant(authV2LoginIllustrationL
         <VCardText>
           <VForm @submit.prevent="login()">
             <VRow>
-              <!-- email -->
+              <!-- username -->
               <VCol cols="12">
                 <VTextField
-                  v-model="form.email"
+                  v-model="form.username"
                   autofocus
-                  label="Email"
-                  type="email"
-                  placeholder="johndoe@email.com"
+                  label="Username"
+                  type="text"
+                  placeholder="Please enter your username"
                 />
               </VCol>
 

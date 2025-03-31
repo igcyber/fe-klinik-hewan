@@ -9,7 +9,7 @@ export default [
   },
   {
     title: 'Roles & Permissions',
-    to: { name: 'second-page' },
+    to: { name: 'roles' },
     icon: { icon: 'ri-lock-password-line' },
   },
   {
