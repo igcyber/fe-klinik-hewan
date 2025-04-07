@@ -1,14 +1,5 @@
 <script setup>
-import americanExDark from '@images/icons/payments/img/ae-dark.png'
-import americanExLight from '@images/icons/payments/img/american-express.png'
-import dcDark from '@images/icons/payments/img/dc-dark.png'
-import dcLight from '@images/icons/payments/img/dc-light.png'
-import jcbDark from '@images/icons/payments/img/jcb-dark.png'
-import jcbLight from '@images/icons/payments/img/jcb-light.png'
-import masterCardDark from '@images/icons/payments/img/master-dark.png'
-import masterCardLight from '@images/icons/payments/img/mastercard.png'
-import visaDark from '@images/icons/payments/img/visa-dark.png'
-import visaLight from '@images/icons/payments/img/visa-light.png'
+import { PERMISSIONS } from '@/utils/constants'
 
 const props = defineProps({
   isDialogVisible: {
@@ -16,46 +7,74 @@ const props = defineProps({
     required: true,
   },
 })
-
 const emit = defineEmits(['update:isDialogVisible'])
-
-const visa = useGenerateImageVariant(visaLight, visaDark)
-const masterCard = useGenerateImageVariant(masterCardLight, masterCardDark)
-const americanEx = useGenerateImageVariant(americanExLight, americanExDark)
-const jcb = useGenerateImageVariant(jcbLight, jcbDark)
-const dc = useGenerateImageVariant(dcLight, dcDark)
-
 const dialogVisibleUpdate = val => {
   emit('update:isDialogVisible', val)
 }
+//permissions from define constants
+const LIST_PERMISSION = PERMISSIONS;
 
-const paymentMethodsData = [
-  {
-    title: 'Visa',
-    type: 'Credit Card',
-    img: visa,
-  },
-  {
-    title: 'American Express',
-    type: 'Credit Card',
-    img: americanEx,
-  },
-  {
-    title: 'Mastercard',
-    type: 'Credit Card',
-    img: masterCard,
-  },
-  {
-    title: 'JCB',
-    type: 'Credit Card',
-    img: jcb,
-  },
-  {
-    title: 'Diners Club',
-    type: 'Credit Card',
-    img: dc,
-  },
-]
+//default states
+const role = ref(null);
+const permissions = ref([]);
+const warning = ref(null);
+const success = ref(null);
+const error_exists = ref(null);
+
+//function to push element in array permissions
+const addPermission = (permission) => {
+  let INDEX = permissions.value.findIndex((key) => key == permission);
+  if(INDEX != -1){
+    permissions.value.splice(INDEX, 1);
+  }else{
+    permissions.value.push(permission);
+  }
+  console.log(permissions.value);
+}
+
+//function to store request create new role
+const store = async() => {
+  warning.value = null;
+  if(!role.value){
+    warning.value = 'The role name must be filled in'
+    return;
+  }
+  if(permissions.value.length == 0){
+    warning.value = 'Please choose permission for the role'
+    return;
+  }
+
+  let data = {
+    name: role.value,
+    permissions: permissions.value
+  }
+
+  try {
+    const resp = await $api('/role',{
+      method: 'POST',
+      body: data,
+      onResponseError({response}){
+        // console.log(response);
+        error_exists.value = response._data.error;
+      }
+    })
+    console.log(resp)
+    if(resp.http_code == 403){
+      warning.value = resp.message;
+    }else{
+      success.value = resp.message;
+    }
+
+    setTimeout(() => {
+      emit('update:isDialogVisible', false)
+    }, 1500)
+    
+  } catch (error) {
+    console.log(error);
+    error_exists.value = error
+  }
+}
+
 </script>
 
 <template>
@@ -75,36 +94,71 @@ const paymentMethodsData = [
       <VCardText class="pa-5">
         <div class="mb-6">
           <h4 class="text-h4 text-center mb-2">
-            Add payment methods
+            Create New Role
           </h4>
-          <p class="text-sm-body-1 text-center">
-            Supported payment methods
-          </p>
         </div>
 
-        <div
-          v-for="(item, index) in paymentMethodsData"
-          :key="index"
-        >
-          <div class="d-flex justify-space-between align-center py-4 gap-x-4">
-            <div class="d-flex align-center">
-              <VImg
-                :src="item.img.value"
-                height="30"
-                width="50"
-                class="me-4"
-              />
-              <div class="text-body-1 font-weight-medium text-high-emphasis">
-                {{ item.title }}
-              </div>
-            </div>
-            <div class="d-none d-sm-block text-body-1">
-              {{ item.type }}
-            </div>
-          </div>
-          <VDivider v-show="index !== paymentMethodsData.length - 1" />
-        </div>
+        <VTextField
+          label="Role"
+          v-model="role"
+          placeholder="Example: Administrator"
+        />
+
       </VCardText>
+      <VCardText>
+          <p class="text-sm-body-1 text-center">
+            Available Permissions
+          </p>
+
+          <VTable>   
+            <thead>
+              <tr>
+                <th class="text-uppercase">
+                  Menu
+                </th>
+                <th class="text-uppercase">
+                  Permission
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(item, index) in LIST_PERMISSION"
+                :key="index"
+              >
+                <td>
+                  {{ item.name }}
+                </td>
+                <td>
+                  <ul>
+                    <li v-for="(item, key) in item.permissions" :key="key" style="list-style: none;">
+                      <VCheckbox
+                        :label="item.name"
+                        :value="item.permission"
+                        @click="addPermission(item.permission)"
+                      />
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </VTable>
+
+          <VAlert type="warning" class="mb-5" v-if="warning">
+            <strong>{{ warning }}</strong>
+          </VAlert>
+          <VAlert type="error" class="mb-5" v-if="error_exists">
+            <strong>Opps... Something Wrong</strong>
+          </VAlert>
+          <VAlert type="success" class="mb-5" v-if="success">
+            <strong>{{ success }}</strong>
+          </VAlert>
+
+      </VCardText>
+      
+      <VBtn color="primary" class="my-4" @click="store()">
+        Submit
+      </VBtn>
     </VCard>
   </VDialog>
 </template>
