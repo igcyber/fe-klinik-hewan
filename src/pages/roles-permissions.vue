@@ -1,35 +1,59 @@
 <script setup>
-import data from '@/views/pages/table/datatable'
+import { onMounted } from 'vue';
+
+// import data from '@/views/pages/table/datatable'
+
+const data = ref([]);
 
 const headers = [
   {
-    title: 'ID',
+    title: 'No',
     key: 'id',
   },
   {
-    title: 'NAME',
-    key: 'fullName',
+    title: 'Role',
+    key: 'name',
   },
   {
-    title: 'EMAIL',
-    key: 'email',
+    title: 'Permissions',
+    key: 'permissions_pluck',
   },
   {
-    title: 'DATE',
-    key: 'startDate',
+    title: 'Creted At',
+    key: 'created_at',
   },
   {
-    title: 'EXPERIENCE',
-    key: 'experience',
+    title: 'Options',
+    key: 'actions',
   },
-  {
-    title: 'AGE',
-    key: 'age',
-  },
-]
+];
 
 const searchQuery = ref(null);
 const isAddRoleDialogVisible = ref(false);
+
+const list = async () => {
+  const resp =  await $api('/role?search='+(searchQuery.value ?? '' ), {
+    method: 'GET',
+    onResponseError({response}){
+      console.log(response)
+    }
+  })
+  console.log(resp);
+  data.value = resp.roles;
+}
+
+const editItem = (item) => {
+
+};
+
+const deleteItem = (item) => {
+
+};
+
+onMounted(() => {
+  list();
+});
+
 </script>
 
 <template>
@@ -44,6 +68,7 @@ const isAddRoleDialogVisible = ref(false);
             style="inline-size: 400px;"
             density="compact"
             class="me-3"
+            @keyup.enter="list"
           />
         </div>
   
@@ -67,6 +92,29 @@ const isAddRoleDialogVisible = ref(false);
       >
         <template #item.id="{ item }">
           <span class="text-h6">{{ item.id }}</span>
+        </template>
+        <template #item.permissions_pluck = "{ item }">
+          <ul>
+            <li v-for="(permission, index) in item.permissions_pluck" :key="index">
+              {{ permission }}
+            </li>  
+          </ul>
+        </template>
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1">
+            <IconBtn
+              size="small"
+              @click="editItem(item)"
+            >
+              <VIcon icon="ri-pencil-line"/>
+            </IconBtn>
+            <IconBtn
+              size="small"
+              @click="deleteItem(item)"
+            >
+              <VIcon icon="ri-delete-bin-line" />
+            </IconBtn>
+          </div>
         </template>
       </VDataTable>
 
