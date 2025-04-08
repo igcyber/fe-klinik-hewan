@@ -1,11 +1,16 @@
 <script setup>
 import { PERMISSIONS } from '@/utils/constants'
+import { onMounted } from 'vue'
 
 const props = defineProps({
   isDialogVisible: {
     type: Boolean,
     required: true,
   },
+  roleSelected: {
+    type: Object,
+    required: true,
+  }
 })
 const emit = defineEmits(['update:isDialogVisible'])
 const dialogVisibleUpdate = val => {
@@ -20,6 +25,7 @@ const permissions = ref([]);
 const warning = ref(null);
 const success = ref(null);
 const error_exists = ref(null);
+const role_selected = ref(null);
 
 //function to push element in array permissions
 const addPermission = (permission) => {
@@ -32,8 +38,8 @@ const addPermission = (permission) => {
   console.log(permissions.value);
 }
 
-//function to store request create new role
-const store = async() => {
+//function to update request create new role
+const update = async() => {
   warning.value = null;
   if(!role.value){
     warning.value = 'The role name must be filled in'
@@ -50,8 +56,8 @@ const store = async() => {
   }
 
   try {
-    const resp = await $api('/role',{
-      method: 'POST',
+    const resp = await $api('/role/'+role_selected.value.id,{
+      method: 'PATCH',
       body: data,
       onResponseError({response}){
         // console.log(response);
@@ -64,18 +70,22 @@ const store = async() => {
     }else{
       success.value = resp.message;
       setTimeout(() => {
-        success.value = null;
-        warning.value = null;
-        role.value = null;
-        permissions.value = [];
         emit('update:isDialogVisible', false)
+        emit('updated')
       }, 1500)
     }
   } catch (error) {
     console.log(error);
     error_exists.value = error
   }
-}
+};
+
+onMounted( () => {
+  role_selected.value = props.roleSelected;
+  console.log(role_selected.value);
+  role.value = role_selected.value.name;
+  permissions.value = role_selected.value.permissions_pluck;
+});
 
 </script>
 
@@ -95,8 +105,8 @@ const store = async() => {
 
       <VCardText class="pa-5">
         <div class="mb-6">
-          <h4 class="text-h4 text-center mb-2">
-            Create New Role
+          <h4 class="text-h4 text-center mb-2" v-if="role_selected">
+            Edit Role {{ role_selected.name }}
           </h4>
         </div>
 
@@ -137,6 +147,7 @@ const store = async() => {
                       <VCheckbox
                         :label="permission.name"
                         :value="permission.permission"
+                        v-model="permissions"
                         @click="addPermission(permission.permission)"
                       />
                     </li>
@@ -158,8 +169,8 @@ const store = async() => {
 
       </VCardText>
       
-      <VBtn color="primary" class="my-4" @click="store()">
-        Submit
+      <VBtn color="info " class="my-4" @click="update()">
+        Update
       </VBtn>
     </VCard>
   </VDialog>

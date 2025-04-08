@@ -1,5 +1,7 @@
 <script setup>
-import { onMounted } from 'vue';
+import DeleteRoleDialog from '@/components/main/role/DeleteRoleDialog.vue';
+import EditRoleDialog from '@/components/main/role/EditRoleDialog.vue';
+import { onMounted, watch } from 'vue';
 
 // import data from '@/views/pages/table/datatable'
 
@@ -29,7 +31,11 @@ const headers = [
 ];
 
 const searchQuery = ref(null);
+const role_selected = ref(null);
+const role_selected_delete = ref(null);
 const isAddRoleDialogVisible = ref(false);
+const isEditRoleDialogVisible = ref(false);
+const isDeleteRoleDialogVisible = ref(false);
 
 const list = async () => {
   const resp =  await $api('/role?search='+(searchQuery.value ?? '' ), {
@@ -43,15 +49,31 @@ const list = async () => {
 }
 
 const editItem = (item) => {
-
+  isEditRoleDialogVisible.value = true;
+  role_selected.value = item;
 };
 
 const deleteItem = (item) => {
-
+  isDeleteRoleDialogVisible.value = true;
+  role_selected_delete.value = item;
 };
 
 onMounted(() => {
   list();
+});
+
+watch(isEditRoleDialogVisible, (event) => {
+  console.log(event);
+  if(event == false){
+    role_selected.value = null;
+  } 
+});
+
+watch(isDeleteRoleDialogVisible, (event) => {
+  console.log(event);
+  if(event == false){
+    role_selected_delete.value = null;
+  } 
 });
 
 </script>
@@ -118,7 +140,9 @@ onMounted(() => {
         </template>
       </VDataTable>
 
-      <AddRoleDialog v-model:is-dialog-visible="isAddRoleDialogVisible"/>
+      <AddRoleDialog @added="list" v-model:is-dialog-visible="isAddRoleDialogVisible"/>
+      <EditRoleDialog v-if="role_selected" @updated="list" :role-selected="role_selected" v-model:is-dialog-visible="isEditRoleDialogVisible"/>
+      <DeleteRoleDialog v-if="role_selected_delete" @deleted="list" :role-selected="role_selected_delete" v-model:is-dialog-visible="isDeleteRoleDialogVisible"/>
     </VCard>
   </div>
 </template>
