@@ -14,7 +14,7 @@ export default [
   },
   {
     title: 'Staffs',
-    to: { name: 'second-page' },
+    to: { name: 'staffs' },
     icon: { icon: 'ri-group-line' },
   },
   {

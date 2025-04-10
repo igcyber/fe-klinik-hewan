@@ -26,5 +26,6 @@ declare module 'vue-router/auto-routes' {
     'product': RouteRecordInfo<'product', '/product', Record<never, never>, Record<never, never>>,
     'roles-permissions': RouteRecordInfo<'roles-permissions', '/roles-permissions', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
+    'staffs': RouteRecordInfo<'staffs', '/staffs', Record<never, never>, Record<never, never>>,
   }
 }

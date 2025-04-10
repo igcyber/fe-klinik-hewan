@@ -21,7 +21,7 @@ const headers = [
     key: 'permissions_pluck',
   },
   {
-    title: 'Creted At',
+    title: 'Created At',
     key: 'created_at',
   },
   {
@@ -80,7 +80,7 @@ watch(isDeleteRoleDialogVisible, (event) => {
 
 <template>
   <div>
-    <VCard title="Roles & Permissions">
+    <VCard title="Roles & Permissions Change">
       <VCardText class="d-flex flex-wrap gap-4">
         <div class="d-flex align-center">
           <!-- 👉 Search  -->
